@@ -1,0 +1,101 @@
+<html>
+  <head>
+    <title>B2B</title>
+    <meta name="viewport" content="width=device-width">
+    <SCRIPT type="text/javascript" lang="javascript"
+            src="https://cdns.us1.gigya.com/js/gigya.js?apikey=4_DSvy7Lqic-qVj_BzX8RO5g">
+    </SCRIPT>
+  </head>
+  <body>
+    <a href="#"  onclick="gigya.accounts.showScreenSet({screenSet:'Default-LiteRegistration'});">
+          Subscribe Here!</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+
+   <span id="login" >
+        <a href="#" onclick="gigya.accounts.showScreenSet({screenSet:'Default-OrganizationRegistration',
+              startScreen:'gigya-org-register-screen'});"> Register your Org</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+
+        <a href="#" onclick="gigya.accounts.showScreenSet({screenSet:'Default-RegistrationLogin'});">
+              Partner Login</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+    </span>
+    <span id="logout" hidden>
+
+        <a href="#" onclick="gigya.accounts.showScreenSet({screenSet:'Default-ProfileUpdate',
+               startScreen:'gigya-update-profile-screen'});">My Profile</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+        <a href="#" onclick="gigya.accounts.showScreenSet({screenSet:'Default-ProfileUpdate',
+                startScreen:'gigya-privacy-screen'});">My Privacy</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+
+        <a href="#" onclick="loadDelegatedAdmin();">Admin Portal Login</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+
+        <a href="#" onclick="logout();">Logout</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+
+        <!-- br/><br/><br/><br/> &nbsp;&nbsp;&nbsp;&nbsp;
+          <a href="#" onclick="">Purchase Feature</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+          <a href="#" onclick="">Approve Feature</a>&nbsp;&nbsp;|&nbsp;&nbsp; -->
+
+    </span>
+    <p>
+    <textarea id="response" cols=100 rows=40></textarea>
+     </p>
+
+    <script type="text/javascript" lang="javascript">
+      function prettyPrint(o) {
+            var pretty = JSON.stringify(o, undefined, 4);
+            document.getElementById('response').value = pretty;
+        }
+        // calls logout and then hides the logout link if the logout succeeds
+        function logout() {
+              gigya.accounts.logout({callback:function (response) {
+                if (response.errorCode == 0) {
+                  document.getElementById("logout").hidden=true;
+                  document.getElementById("login").hidden=false;
+                  document.getElementById('response').value = '';
+                }
+                else {
+                  alert('Error:' + response.errorMessage);
+               }
+             }});
+        }
+
+        function loadDelegatedAdmin()
+        {
+            gigya.accounts.getAccountInfo({include:'groups', callback: function(response){
+                console.log(response.errorCode);
+                if (response.errorCode === 0)
+                {
+                    prettyPrint(response)
+                    console.log(response);
+                    gigya.accounts.b2b.openDelegatedAdminLogin({ orgId: response.groups.organizations[0].orgId });
+                }
+            }});
+        }
+
+        // if there's a user logged in then shows the logout link
+        gigya.accounts.getAccountInfo({callback:function (response) {
+            if (response.errorCode == 0) {
+              document.getElementById("logout").hidden=false;
+              document.getElementById("login").hidden=true;
+            }
+        }});
+
+        // traps the login event to show the logout link
+        gigya.accounts.addEventHandlers({
+          onLogin: function () {
+            document.getElementById("logout").hidden=false;
+            document.getElementById("login").hidden=true;
+
+            gigya.accounts.getAccountInfo({include: 'groups',callback:function(response) {
+              console.log(response);
+              gigya.accounts.b2b.auth.getAssets({
+                appId: "PS0V32WPH9UT6JT4QOEF",
+                bpid: response.groups.organizations[0].bpid,
+                callback: function(e) {
+                  prettyPrint(e)
+                  console.log(e);
+                }
+              });
+            }});
+          }
+      });
+    </script>
+  </body>
+</html>
